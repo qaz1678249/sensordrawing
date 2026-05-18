@@ -5,7 +5,8 @@ This repository contains scripts and utilities for visualizing sensor data and k
 ## Features
 - Kinematics calculation (`xram_kinematics.py`)
 - Drawing and visualization (`draw_sensors.py`, `example_draw.py`)
-- Normalization and transformations (`normalizer.py`, `transforms/`)
+- Transformations constants (`transforms/`)
+- Sensor data normalization (`normalizer.py`), better to use idle sensors readings in the collected dataset (like first 3 seconds) to overwrite the constant offset since the sensor readings shift overtime.
 
 ## Example
 
