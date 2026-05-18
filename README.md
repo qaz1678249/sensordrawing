@@ -20,7 +20,7 @@ The `draw_on_image` method of `SensorDrawer` allows flexible rendering of sensor
 - `"points9_color"`: Draws 9 dots per side with no arrows. The dots are colored based on sensor XYZ readings mapped linearly to RGB. Supports spatial mapping and 2D overlay.
 
 ### Main Arguments
-- `image`: The BGR/RGB numpy array (e.g. 640x480) to draw on.
+- `image`: The BGR/RGB numpy array (current version 640x480 only since camera K matrix is hardcoded with 640*480 resolution) to draw on.
 - `angles`: List of 7 joint angles from xArm (degrees).
 - `grip_pos`: Gripper position value.
 - `dot_size`: Diameter for sensor dots.
