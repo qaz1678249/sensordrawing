@@ -19,6 +19,7 @@ The `draw_on_image` method of `SensorDrawer` allows flexible rendering of sensor
 - `"points1_arrow"`: Draws 1 center dot and 1 averaged force arrow per side (requires `is_spatial=True`).
 - `"points1_contact"`: Draws 1 center dot per side only when any sensor magnitude exceeds a threshold (`>= 0.05`). Supports spatial mapping and 2D overlay.
 - `"points9_color"`: Draws 9 dots per side with no arrows. The dots are colored based on sensor XYZ readings mapped linearly to RGB. Supports spatial mapping and 2D overlay.
+- `"bin_bar"`: Draws a thin horizontal bar (20 px tall) at the bottom corner for each finger (requires `is_spatial=False`). Bar width is proportional to the L2 norm of the averaged force across 9 sensors. The left bar grows rightward from the left edge; the right bar grows leftward from the right edge. Both are capped at half the image width to prevent overlap. Controlled by `bar_scale` (pixels per unit magnitude, default 300).
 
 ### Main Arguments
 - `image`: The BGR/RGB numpy array (current version 640x480 only since camera K matrix is hardcoded with 640*480 resolution) to draw on.

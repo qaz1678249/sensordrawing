@@ -119,7 +119,7 @@ class SensorDrawer:
                       scale=1.0, is_spatial=True,
                       normalized_left_sensor=None, normalized_right_sensor=None,
                       arrow_thickness=2, arrow_length_scale=0.12, mode="points9_arrow",
-                      color_scale=1.0):
+                      color_scale=1.0, bar_scale=300.0):
         """
         Draw sensor points and force arrows on the given image.
 
@@ -147,15 +147,23 @@ class SensorDrawer:
                 "points9_color" - Draw 9 dots per side, no arrows. Each dot color is derived
                     from its sensor xyz reading mapped linearly to RGB. Left maps to 0-127,
                     right maps to 128-255. Fully opaque. Supports both is_spatial=True and False.
+                "bin_bar" - Draw a thin horizontal bar at the bottom corner for each finger
+                    (requires is_spatial=False). Width is proportional to the L2 norm of the
+                    averaged force across 9 sensors. Left bar grows right from the left edge;
+                    right bar grows left from the right edge. Bar height is 20 pixels.
             color_scale: Multiplier applied to sensor xyz values before color mapping
                 in points9_color mode. Values are clamped to [-1, 1] after scaling.
+            bar_scale: Pixels per unit of L2 force magnitude in bin_bar mode.
+                Bar width = min(magnitude * bar_scale, image_width / 2).
         """
-        valid_modes = ("points9_arrow", "points1_arrow", "points1_contact", "points9_color")
+        valid_modes = ("points9_arrow", "points1_arrow", "points1_contact", "points9_color", "bin_bar")
         if mode not in valid_modes:
             raise ValueError(f"Unsupported mode '{mode}', must be: {', '.join(valid_modes)}")
 
         if mode in ("points9_arrow", "points1_arrow") and not is_spatial:
             raise ValueError(f"mode='{mode}' requires is_spatial=True")
+        if mode == "bin_bar" and is_spatial:
+            raise ValueError("mode='bin_bar' requires is_spatial=False")
 
         img_out = image.copy()
 
@@ -421,5 +429,32 @@ class SensorDrawer:
                     py = y_offset + gy * (dot_size + 5)
                     cv2.circle(img_out, (int(px_l), int(py)), dot_size // 2, left_colors[i], -1)
                     cv2.circle(img_out, (int(px_r), int(py)), dot_size // 2, right_colors[i], -1)
+
+        elif mode == "bin_bar":
+            bar_height = 20
+            h, w = img_out.shape[:2]
+            max_bar_width = w // 2  # left and right bars each stay within their half
+
+            overlay = img_out.copy()
+            for sensor_data, color, side in [
+                (normalized_left_sensor, left_color, 'left'),
+                (normalized_right_sensor, right_color, 'right'),
+            ]:
+                if sensor_data is None:
+                    continue
+                avg_force = sensor_data.mean(axis=0)  # (3,)
+                magnitude = np.linalg.norm(avg_force)
+                bar_width = int(min(magnitude * bar_scale, max_bar_width))
+                if bar_width <= 0:
+                    continue
+                y1, y2 = h - bar_height, h
+                if side == 'left':
+                    x1, x2 = 0, bar_width
+                else:
+                    x1, x2 = w - bar_width, w
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color[:3], -1)
+
+            alpha = left_color[3] / 255.0 if len(left_color) > 3 else 1.0
+            cv2.addWeighted(overlay, alpha, img_out, 1 - alpha, 0, img_out)
 
         return img_out

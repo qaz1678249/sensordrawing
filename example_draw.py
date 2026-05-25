@@ -1,7 +1,7 @@
 """
 Example usage of SensorDrawer: draw normalized sensor data (0, 0, 0.4) for all 9 readings
-on both left and right sides, using all 4 modes and both cameras.
-Modes that support is_spatial=False (points1_contact, points9_color) are drawn both ways.
+on both left and right sides, using all modes and both cameras.
+Modes that support is_spatial=False (points1_contact, points9_color, bin_bar) are drawn both ways.
 """
 import numpy as np
 import cv2
@@ -26,6 +26,7 @@ draw_configs = [
     ("points9_color",   True,  0.12),
     ("points1_contact", False, 0.12),
     ("points9_color",   False, 0.12),
+    ("bin_bar",         False, 0.12),
 ]
 
 results = []
@@ -72,12 +73,13 @@ for mode, is_spatial, arrow_scale in draw_configs:
     cv2.putText(img, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
     results.append(img)
 
-# --- Tile all 12 results into a single image (2 rows x 6 cols) ---
+# --- Tile all 14 results into a single image (2 rows x 7 cols) ---
+n_configs = len(draw_configs)
 target_h, target_w = 480, 640
 resized = [cv2.resize(img, (target_w, target_h)) for img in results]
 
-row_top = np.hstack(resized[:6])      # side camera configs
-row_bottom = np.hstack(resized[6:])   # wrist camera configs
+row_top = np.hstack(resized[:n_configs])      # side camera configs
+row_bottom = np.hstack(resized[n_configs:])   # wrist camera configs
 tiled = np.vstack([row_top, row_bottom])
 
 cv2.imwrite("example_all_modes.jpg", tiled)
