@@ -84,3 +84,19 @@ tiled = np.vstack([row_top, row_bottom])
 
 cv2.imwrite("example_all_modes.jpg", tiled)
 print(f"Saved example_all_modes.jpg ({tiled.shape[1]}x{tiled.shape[0]})")
+
+# --- third_image mode: raw sensor frame, black background, no camera/robot transforms ---
+# Middle sensor (idx 4) = (0.4, 0.4, 1) → red; all others = (0.4, 0.4, 0) → green
+sensor_third = np.full((9, 3), [0.4, 0.4, 0.0])
+sensor_third[4] = [0.4, 0.4, 1.0]
+
+dummy_img = np.zeros((480, 640, 3), dtype=np.uint8)
+img_third = side_drawer.draw_on_image(
+    dummy_img, angles, grip_pos,
+    normalized_left_sensor=sensor_third,
+    normalized_right_sensor=sensor_third,
+    mode="third_image",
+)
+cv2.putText(img_third, "third_image", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+cv2.imwrite("example_third_image.jpg", img_third)
+print(f"Saved example_third_image.jpg ({img_third.shape[1]}x{img_third.shape[0]})")
